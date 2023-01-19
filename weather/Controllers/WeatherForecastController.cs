@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace weather.Controllers;
 
@@ -12,6 +14,16 @@ public class WeatherForecastController : ControllerBase
     };
 
     private readonly ILogger<WeatherForecastController> _logger;
+
+    private String GetSubject()
+    {
+        return GetClaim(ClaimTypes.NameIdentifier);
+    }
+    private String GetClaim(String type)
+    {
+        Claim c = User.Claims.FirstOrDefault(c => c.Type == type);
+        return c?.Value;
+    }
 
     public WeatherForecastController(ILogger<WeatherForecastController> logger)
     {
@@ -28,5 +40,26 @@ public class WeatherForecastController : ControllerBase
             Summary = Summaries[Random.Shared.Next(Summaries.Length)]
         })
         .ToArray();
+    }
+
+    [HttpGet("authenticated")]
+    [Authorize]
+    public IActionResult Authenticated()
+    {
+        return Ok(new { data = "Some data from secured endpoint.", user = GetSubject() });
+    }
+
+    [HttpGet("developer")]
+    [Authorize(Policy = "developer")]
+    public IActionResult Developer()
+    {
+        return Ok(new { data = "Some data for developers", user = GetSubject(), title = GetClaim("title") });
+    }
+
+    [HttpGet("lowrisk")]
+    [Authorize(Policy = "lowRisk")]
+    public IActionResult LowRisk()
+    {
+        return Ok(new { data = "Your risk score is low", user = GetSubject(), risk = GetClaim("risk") });
     }
 }

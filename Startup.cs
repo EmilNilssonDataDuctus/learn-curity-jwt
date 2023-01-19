@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer; // Added to enable JWT Authorization
 
 namespace weather
 {
@@ -27,6 +27,7 @@ namespace weather
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Added below to enable JWT Authenticaion
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -48,6 +49,7 @@ namespace weather
                     .RequireClaim("department", "development")
                 );
             });
+            // Added above to enable JWT Authenticaion
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -66,8 +68,8 @@ namespace weather
             }
 
             app.UseRouting();
-
-            app.UseAuthentication();
+            // Removed UseHttpsRedirection
+            app.UseAuthentication(); // Added to enable JWT Authentication
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
